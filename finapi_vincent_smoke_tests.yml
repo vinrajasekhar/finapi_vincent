@@ -5,6 +5,15 @@
 
 trigger: none
 
+resources:
+  pipelines:
+    - pipeline: buildPipeline
+      source: vinrajasekhar.finapi_vincent
+      trigger:
+        branches:
+          include:
+            - main
+
 pool:
   name: student-lab-pool
 
