@@ -1,0 +1,40 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger: none
+
+resources:
+  pipelines:
+    - pipeline: buildPipeline
+      source: vinrajasekhar.finapi_vincent
+      trigger:
+        branches:
+          include:
+            - main
+
+variables:
+  - group: LogAnalyticsSecrets
+
+pool:
+  name: student-lab-pool
+
+steps:
+  - script: |
+      /azagent/venv/bin/pip3 install pytest requests
+    displayName: "Install dependencies"
+
+  - script: |
+      export LOG_ANALYTICS_WORKSPACE_ID=$(LOG_ANALYTICS_WORKSPACE_ID)
+      export LOG_ANALYTICS_SHARED_KEY=$(LOG_ANALYTICS_SHARED_KEY)
+      /azagent/venv/bin/python3 -m pytest -v --tb=line  -W "ignore::DeprecationWarning" -s tests/smoke_tests_centralized.py --junitxml=smoke-results.xml
+    displayName: "Run full smoke test suite"
+
+
+  - task: PublishTestResults@2
+    condition: always()
+    inputs:
+      testResultsFiles: 'smoke-results.xml'
+      testRunTitle: 'Post-deployment Smoke Test'
+      failTaskOnFailedTests: false
